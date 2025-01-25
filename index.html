@@ -64,6 +64,7 @@
 
         <label for="currency">Currency:</label>
         <select id="currency" onchange="updateCurrency()">
+            <option value="Rp" selected>RP (Rp)</option>
             <option value="$">USD ($)</option>
             <option value="€">EUR (€)</option>
             <option value="£">GBP (£)</option>
@@ -88,7 +89,7 @@
 
         <button onclick="addItem()">Add Item</button>
 
-        <div class="total">Grand Total: <span id="currencySymbol">$</span><span id="grandTotal">0.00</span></div>
+        <div class="total">Grand Total: <span id="currencySymbol">Rp</span><span id="grandTotal">0.00</span></div>
 
         <button class="btn" onclick="previewInvoice()">Generate Preview</button>
         <a href="#" class="btn" onclick="generateInvoicePDF()">Download Invoice as PDF</a>
@@ -111,14 +112,14 @@
                     <!-- Preview items will be added dynamically -->
                 </tbody>
             </table>
-            <p class="total">Grand Total: <span id="currencySymbolPreview">$</span><span id="previewGrandTotal"></span></p>
+            <p class="total">Grand Total: <span id="currencySymbolPreview">Rp</span><span id="previewGrandTotal"></span></p>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <script>
         let grandTotal = 0;
-        let currencySymbol = "$";
+        let currencySymbol = "Rp";
 
         function addItem() {
             const tbody = document.getElementById('invoiceItems');
