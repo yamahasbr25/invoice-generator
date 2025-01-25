@@ -81,7 +81,28 @@
 
         <div class="total">Grand Total: $<span id="grandTotal">0.00</span></div>
 
+        <button class="btn" onclick="previewInvoice()">Generate Preview</button>
         <a href="#" class="btn" onclick="generateInvoicePDF()">Download Invoice as PDF</a>
+
+        <div id="preview" style="margin-top: 20px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; display: none; background: #f0f0f0;">
+            <h2>Invoice Preview</h2>
+            <p><strong>Client Name:</strong> <span id="previewClientName"></span></p>
+            <p><strong>Invoice Date:</strong> <span id="previewInvoiceDate"></span></p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="previewItems">
+                    <!-- Preview items will be added dynamically -->
+                </tbody>
+            </table>
+            <p class="total">Grand Total: $<span id="previewGrandTotal"></span></p>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
@@ -130,6 +151,46 @@
             const row = button.parentElement.parentElement;
             row.remove();
             updateGrandTotal();
+        }
+
+        function previewInvoice() {
+            const clientName = document.getElementById('clientName').value;
+            const invoiceDate = document.getElementById('invoiceDate').value;
+
+            if (!clientName || !invoiceDate) {
+                alert('Please fill in the client name and invoice date.');
+                return;
+            }
+
+            const previewClientName = document.getElementById('previewClientName');
+            const previewInvoiceDate = document.getElementById('previewInvoiceDate');
+            const previewItems = document.getElementById('previewItems');
+            const previewGrandTotal = document.getElementById('previewGrandTotal');
+
+            previewClientName.textContent = clientName;
+            previewInvoiceDate.textContent = invoiceDate;
+
+            previewItems.innerHTML = '';
+            const rows = document.querySelectorAll('#invoiceItems tr');
+            rows.forEach(row => {
+                const description = row.querySelector('td:nth-child(1) input').value;
+                const quantity = row.querySelector('td:nth-child(2) input').value;
+                const price = row.querySelector('td:nth-child(3) input').value;
+                const total = row.querySelector('.itemTotal').textContent;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${description}</td>
+                    <td>${quantity}</td>
+                    <td>$${price}</td>
+                    <td>${total}</td>
+                `;
+                previewItems.appendChild(tr);
+            });
+
+            previewGrandTotal.textContent = grandTotal.toFixed(2);
+
+            document.getElementById('preview').style.display = 'block';
         }
 
         async function generateInvoicePDF() {
