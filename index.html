@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        .invoice {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        h1 {
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        .total {
+            text-align: right;
+            font-weight: bold;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .btn:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice">
+        <h1>Invoice Generator</h1>
+
+        <label for="clientName">Client Name:</label>
+        <input type="text" id="clientName" placeholder="Enter client name">
+
+        <label for="invoiceDate">Invoice Date:</label>
+        <input type="date" id="invoiceDate">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="invoiceItems">
+                <!-- Items will be added dynamically -->
+            </tbody>
+        </table>
+
+        <button onclick="addItem()">Add Item</button>
+
+        <div class="total">Grand Total: $<span id="grandTotal">0.00</span></div>
+
+        <a href="#" class="btn" onclick="generateInvoicePDF()">Download Invoice as PDF</a>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script>
+        let grandTotal = 0;
+
+        function addItem() {
+            const tbody = document.getElementById('invoiceItems');
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="text" placeholder="Description"></td>
+                <td><input type="number" placeholder="Quantity" min="1" value="1" oninput="updateTotal(this)"></td>
+                <td><input type="number" placeholder="Price" min="0" value="0" oninput="updateTotal(this)"></td>
+                <td class="itemTotal">$0.00</td>
+                <td><button onclick="removeItem(this)">Remove</button></td>
+            `;
+
+            tbody.appendChild(tr);
+        }
+
+        function updateTotal(input) {
+            const row = input.parentElement.parentElement;
+            const quantity = row.querySelector('td:nth-child(2) input').value;
+            const price = row.querySelector('td:nth-child(3) input').value;
+            const totalCell = row.querySelector('.itemTotal');
+
+            const total = quantity * price;
+            totalCell.textContent = `$${total.toFixed(2)}`;
+
+            updateGrandTotal();
+        }
+
+        function updateGrandTotal() {
+            grandTotal = 0;
+            const totals = document.querySelectorAll('.itemTotal');
+
+            totals.forEach(total => {
+                grandTotal += parseFloat(total.textContent.replace('$', ''));
+            });
+
+            document.getElementById('grandTotal').textContent = grandTotal.toFixed(2);
+        }
+
+        function removeItem(button) {
+            const row = button.parentElement.parentElement;
+            row.remove();
+            updateGrandTotal();
+        }
+
+        async function generateInvoicePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const clientName = document.getElementById('clientName').value;
+            const invoiceDate = document.getElementById('invoiceDate').value;
+
+            if (!clientName || !invoiceDate) {
+                alert('Please fill in the client name and invoice date.');
+                return;
+            }
+
+            doc.setFontSize(16);
+            doc.text('Invoice', 105, 20, null, null, 'center');
+
+            doc.setFontSize(12);
+            doc.text(`Client: ${clientName}`, 20, 40);
+            doc.text(`Date: ${invoiceDate}`, 20, 50);
+
+            let yPosition = 70;
+            doc.text('Description', 20, yPosition);
+            doc.text('Quantity', 80, yPosition);
+            doc.text('Price', 120, yPosition);
+            doc.text('Total', 160, yPosition);
+
+            yPosition += 10;
+            const rows = document.querySelectorAll('#invoiceItems tr');
+            rows.forEach(row => {
+                const description = row.querySelector('td:nth-child(1) input').value;
+                const quantity = row.querySelector('td:nth-child(2) input').value;
+                const price = row.querySelector('td:nth-child(3) input').value;
+                const total = row.querySelector('.itemTotal').textContent;
+
+                doc.text(description, 20, yPosition);
+                doc.text(quantity, 80, yPosition);
+                doc.text(`$${price}`, 120, yPosition);
+                doc.text(total, 160, yPosition);
+
+                yPosition += 10;
+            });
+
+            doc.text(`Grand Total: $${grandTotal.toFixed(2)}`, 160, yPosition);
+
+            doc.save('invoice.pdf');
+        }
+    </script>
+</body>
+</html>
